@@ -10,16 +10,13 @@ export interface Profile {
   is_verified?: boolean;
 }
 
-export type ProductCategory =
-  | 'CCTV'
-  | 'Access Point'
-  | 'Instalasi Listrik'
-  | 'Kabel LAN'
-  | 'Kabel FO'
-  | 'Kabel Listrik'
-  | 'Cleaning AC'
-  | 'Jasa'
-  | 'Lainnya';
+export type ProductCategory = string;
+
+export interface Category {
+  id: string;
+  name: string;
+  created_at: string;
+}
 
 export type ProductUnit = 'pcs' | 'meter' | 'unit' | 'set' | 'titik' | 'roll' | 'box';
 

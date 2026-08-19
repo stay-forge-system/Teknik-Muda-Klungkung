@@ -2,19 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Product, ProductCategory } from '@/types';
+import { Product, Category } from '@/types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productSchema, ProductFormData } from '@/lib/validations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '@/lib/pdf/generateBill';
-import { Plus, Search, Edit2, Trash2, X, Package, Tag, ToggleLeft, ToggleRight } from 'lucide-react';
-
-const CATEGORIES: ProductCategory[] = [
-  'CCTV', 'Access Point', 'Instalasi Listrik',
-  'Kabel LAN', 'Kabel FO', 'Kabel Listrik',
-  'Cleaning AC', 'Jasa', 'Lainnya',
-];
+import { Plus, Search, Edit2, Trash2, X, Package, Tag, ToggleLeft, ToggleRight, List } from 'lucide-react';
 
 const UNITS = ['pcs', 'meter', 'unit', 'set', 'titik', 'roll', 'box'];
 
@@ -33,12 +27,16 @@ const categoryColors: Record<string, { color: string; bg: string }> = {
 export default function ProductsPage() {
   const supabase = createClient();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);
+  const [showCatModal, setShowCatModal] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleteCatConfirm, setDeleteCatConfirm] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -58,6 +56,9 @@ export default function ProductsPage() {
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
+    const { data: catData } = await supabase.from('product_categories').select('*').order('name');
+    if (catData) setCategories(catData);
+
     const { data } = await supabase
       .from('products')
       .select('*')
@@ -68,6 +69,30 @@ export default function ProductsPage() {
   }, []);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  const handleAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    setSaving(true);
+    const { error } = await supabase.from('product_categories').insert({ name: newCatName });
+    if (error) showAlert('error', 'Kategori sudah ada atau gagal ditambah');
+    else {
+      showAlert('success', 'Kategori ditambah');
+      setNewCatName('');
+      fetchProducts();
+    }
+    setSaving(false);
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    const { error } = await supabase.from('product_categories').delete().eq('id', id);
+    if (error) showAlert('error', 'Gagal menghapus (mungkin masih ada produk di kategori ini)');
+    else {
+      showAlert('success', 'Kategori dihapus');
+      fetchProducts();
+    }
+    setDeleteCatConfirm(null);
+  };
 
   const showAlert = (type: 'success' | 'error', message: string) => {
     setAlert({ type, message });
@@ -136,9 +161,14 @@ export default function ProductsPage() {
           <h1>Produk & Barang</h1>
           <p>{products.length} produk tersedia</p>
         </div>
-        <button className="btn btn-primary" onClick={openCreateModal} id="add-product-btn">
-          <Plus size={16} /> Tambah Produk
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className="btn btn-secondary" onClick={() => setShowCatModal(true)}>
+            <List size={16} /> Kelola Kategori
+          </button>
+          <button className="btn btn-primary" onClick={openCreateModal} id="add-product-btn">
+            <Plus size={16} /> Tambah Produk
+          </button>
+        </div>
       </div>
 
       {/* Alert */}
@@ -177,7 +207,7 @@ export default function ProductsPage() {
           id="category-filter"
         >
           <option value="all">Semua Kategori</option>
-          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
       </div>
 
@@ -410,6 +440,64 @@ export default function ProductsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Category Management Modal */}
+      <AnimatePresence>
+        {showCatModal && (
+          <div className="modal-backdrop">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="modal-content"
+              style={{ maxWidth: '400px' }}
+            >
+              <div className="modal-header">
+                <h2>Kelola Kategori</h2>
+                <button className="btn-icon" onClick={() => setShowCatModal(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '10px' }}>
+                <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Nama Kategori Baru"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                  />
+                  <button type="submit" className="btn btn-primary" disabled={!newCatName.trim() || saving}>
+                    {saving ? '...' : 'Tambah'}
+                  </button>
+                </form>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {categories.length === 0 ? (
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Belum ada kategori.</p>
+                  ) : (
+                    categories.map(cat => (
+                      <div key={cat.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600' }}>{cat.name}</span>
+                        {deleteCatConfirm === cat.id ? (
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button className="btn-icon" style={{ color: 'var(--danger)', fontSize: '11px', fontWeight: '600' }} onClick={() => handleDeleteCategory(cat.id)}>Ya, Hapus</button>
+                            <button className="btn-icon" style={{ fontSize: '11px' }} onClick={() => setDeleteCatConfirm(null)}>Batal</button>
+                          </div>
+                        ) : (
+                          <button className="btn-icon" onClick={() => setDeleteCatConfirm(cat.id)}>
+                            <Trash2 size={16} color="var(--danger)" />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

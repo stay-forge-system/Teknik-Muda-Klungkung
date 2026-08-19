@@ -7,11 +7,7 @@ export const loginSchema = z.object({
 
 export const productSchema = z.object({
   name: z.string().min(1, 'Nama produk wajib diisi'),
-  category: z.enum([
-    'CCTV', 'Access Point', 'Instalasi Listrik',
-    'Kabel LAN', 'Kabel FO', 'Kabel Listrik',
-    'Cleaning AC', 'Jasa', 'Lainnya'
-  ]),
+  category: z.string().min(1, 'Kategori wajib diisi'),
   description: z.string().optional(),
   unit: z.enum(['pcs', 'meter', 'unit', 'set', 'titik', 'roll', 'box']),
   price: z.number().min(0, 'Harga tidak boleh negatif'),
