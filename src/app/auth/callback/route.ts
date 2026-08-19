@@ -10,9 +10,11 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       return NextResponse.redirect(`${requestUrl.origin}/update-password`);
+    } else {
+      return NextResponse.redirect(`${requestUrl.origin}/login?error=${encodeURIComponent(error.message)}`);
     }
   }
 
-  // Fallback to login if code exchange fails or is missing
-  return NextResponse.redirect(`${requestUrl.origin}/login`);
+  // Fallback if no code
+  return NextResponse.redirect(`${requestUrl.origin}/login?error=no_code`);
 }
