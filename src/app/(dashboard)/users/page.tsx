@@ -86,7 +86,7 @@ export default function UsersPage() {
     } else {
       showAlert('success', `User ${form.full_name} berhasil dibuat`);
       setShowModal(false);
-      setForm({ full_name: '', email: '', password: '', role: 'teknisi' });
+      setForm({ full_name: '', email: '', role: 'teknisi' });
       fetchUsers();
     }
     setSaving(false);
