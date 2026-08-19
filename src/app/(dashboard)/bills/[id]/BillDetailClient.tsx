@@ -68,6 +68,9 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
       container.innerHTML = html;
       container.style.position = 'absolute';
       container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = '794px'; // Fixed A4 width
+      container.style.backgroundColor = '#ffffff';
       document.body.appendChild(container);
 
       const canvas = await html2canvas(container.querySelector('#bill-pdf') as HTMLElement, {
