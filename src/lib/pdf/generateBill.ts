@@ -32,14 +32,14 @@ export function generateBillHTML(bill: Bill): string {
 
   const itemsHTML = bill.items?.map((item, index) => `
     <tr style="border-bottom: 1px solid #F3F4F6;">
-      <td style="padding: 12px 16px; font-size: 14px; color: #374151;">${index + 1}</td>
-      <td style="padding: 12px 16px;">
-        <div style="font-size: 14px; font-weight: 600; color: #111827;">${item.name}</div>
-        ${item.description ? `<div style="font-size: 12px; color: #6B7280; margin-top: 2px;">${item.description}</div>` : ''}
+      <td style="padding: 16px 0; font-size: 13px; color: #374151;">${index + 1}</td>
+      <td style="padding: 16px 0;">
+        <div style="font-size: 13px; font-weight: 500; color: #111827;">${item.name}</div>
+        ${item.description ? `<div style="font-size: 12px; color: #9CA3AF; margin-top: 4px;">${item.description}</div>` : ''}
       </td>
-      <td style="padding: 12px 16px; font-size: 14px; color: #374151; text-align: center;">${item.quantity} ${item.unit}</td>
-      <td style="padding: 12px 16px; font-size: 14px; color: #374151; text-align: right;">${formatCurrency(item.unit_price)}</td>
-      <td style="padding: 12px 16px; font-size: 14px; font-weight: 600; color: #111827; text-align: right;">${formatCurrency(item.total)}</td>
+      <td style="padding: 16px 0; font-size: 13px; color: #4B5563; text-align: center;">${item.quantity} ${item.unit}</td>
+      <td style="padding: 16px 0; font-size: 13px; color: #4B5563; text-align: right;">${formatCurrency(item.unit_price)}</td>
+      <td style="padding: 16px 0; font-size: 13px; font-weight: 600; color: #111827; text-align: right;">${formatCurrency(item.total)}</td>
     </tr>
   `).join('') || '';
 
@@ -53,32 +53,32 @@ export function generateBillHTML(bill: Bill): string {
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #111827; }
     .page { max-width: 794px; margin: 0 auto; padding: 48px; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; }
-    .logo-section h1 { font-size: 28px; font-weight: 800; color: #0066FF; letter-spacing: -0.5px; }
-    .logo-section p { font-size: 12px; color: #6B7280; margin-top: 4px; }
+    .logo-section h1 { font-size: 28px; font-weight: 900; color: #111827; letter-spacing: -1px; }
+    .logo-section p { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
     .bill-meta { text-align: right; }
     .bill-number { font-size: 22px; font-weight: 700; color: #111827; }
     .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; color: white; margin-top: 8px; background: ${statusColor[bill.status]}; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 40px; padding: 24px; background: #F9FAFB; border-radius: 12px; }
-    .info-block label { font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; }
-    .info-block p { font-size: 14px; color: #111827; margin-top: 4px; font-weight: 500; }
-    .info-block .name { font-size: 16px; font-weight: 700; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; padding: 24px 0; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; }
+    .info-block label { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-block p { font-size: 14px; color: #111827; margin-top: 6px; font-weight: 500; }
+    .info-block .name { font-size: 15px; font-weight: 700; }
     .title-section { margin-bottom: 32px; }
     .title-section h2 { font-size: 20px; font-weight: 700; color: #111827; }
     .title-section p { font-size: 14px; color: #6B7280; margin-top: 4px; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
-    thead tr { background: #0066FF; }
-    thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
-    thead th:first-child { text-align: left; border-radius: 8px 0 0 0; }
-    thead th:last-child { border-radius: 0 8px 0 0; }
+    thead tr { }
+    thead th { padding: 12px 0; font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #E5E7EB; }
+    thead th:first-child { text-align: left; }
+    thead th:last-child { }
     thead th:nth-child(3), thead th:nth-child(4), thead th:nth-child(5) { text-align: right; }
-    tbody tr:nth-child(even) { background: #F9FAFB; }
+    tbody tr:nth-child(even) { background: transparent; }
     .totals { margin-left: auto; width: 320px; }
-    .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; color: #374151; }
+    .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; color: #4B5563; }
     .total-row.divider { border-top: 1px solid #E5E7EB; margin-top: 8px; padding-top: 16px; }
-    .total-row.grand { font-size: 18px; font-weight: 800; color: #111827; border-top: 2px solid #0066FF; padding-top: 16px; margin-top: 8px; }
-    .notes { margin-top: 40px; padding: 20px; background: #FFFBEB; border-left: 4px solid #F59E0B; border-radius: 0 8px 8px 0; }
-    .notes label { font-size: 11px; font-weight: 600; color: #92400E; text-transform: uppercase; }
-    .notes p { font-size: 13px; color: #78350F; margin-top: 6px; }
+    .total-row.grand { font-size: 18px; font-weight: 800; color: #111827; border-top: 1px solid #111827; padding-top: 16px; margin-top: 12px; }
+    .notes { margin-top: 40px; padding-top: 24px; border-top: 1px solid #E5E7EB; }
+    .notes label { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; }
+    .notes p { font-size: 13px; color: #4B5563; margin-top: 8px; line-height: 1.6; }
     .footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; }
     .footer p { font-size: 12px; color: #9CA3AF; }
     .signature { text-align: center; }
@@ -92,10 +92,10 @@ export function generateBillHTML(bill: Bill): string {
   <div class="header">
     <div class="logo-section">
       <h1>TMK</h1>
-      <p style="font-size:16px; font-weight:700; color:#111827; margin-top:4px;">Teknik Muda Klungkung</p>
-      <p style="margin-top:4px;">Solusi Teknologi & Keamanan Terpadu</p>
-      <p style="margin-top:8px; font-size:12px; color:#374151;">CCTV • Access Point • Instalasi Listrik</p>
-      <p style="font-size:12px; color:#374151;">Kabel LAN/FO • Cleaning AC</p>
+      <p style="font-size:14px; font-weight:600; color:#374151; margin-top:4px;">Teknik Muda Klungkung</p>
+      <p style="margin-top:2px;">Solusi Teknologi & Keamanan Terpadu</p>
+      <p style="margin-top:8px; font-size:12px; color:#6B7280;">CCTV • Access Point • Instalasi Listrik</p>
+      <p style="font-size:12px; color:#6B7280;">Kabel LAN/FO • Cleaning AC</p>
     </div>
     <div class="bill-meta">
       <div class="bill-number">${bill.bill_number}</div>
@@ -164,7 +164,7 @@ export function generateBillHTML(bill: Bill): string {
     </div>` : ''}
     <div class="total-row grand">
       <span>TOTAL</span>
-      <span style="color:#0066FF;">${formatCurrency(bill.total)}</span>
+      <span>${formatCurrency(bill.total)}</span>
     </div>
   </div>
 

@@ -189,9 +189,9 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
               {/* Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
                 <div>
-                  <div style={{ fontSize: '28px', fontWeight: '900', color: '#0066FF' }}>TMK</div>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#111827', marginTop: '4px' }}>Teknik Muda Klungkung</div>
-                  <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>Solusi Teknologi & Keamanan Terpadu</div>
+                  <div style={{ fontSize: '28px', fontWeight: '900', color: '#111827', letterSpacing: '-1px' }}>TMK</div>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginTop: '4px' }}>Teknik Muda Klungkung</div>
+                  <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>Solusi Teknologi & Keamanan Terpadu</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#111827' }}>{bill.bill_number}</div>
@@ -206,15 +206,14 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
                 </div>
               </div>
 
-              {/* Client Info */}
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
-                gap: '24px',
-                padding: '20px',
-                background: '#F9FAFB',
-                borderRadius: '10px',
-                marginBottom: '24px',
+                gap: '40px',
+                padding: '24px 0',
+                borderTop: '1px solid #E5E7EB',
+                borderBottom: '1px solid #E5E7EB',
+                marginBottom: '32px',
               }}>
                 <div>
                   <div style={{ fontSize: '10px', fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Dari</div>
@@ -234,30 +233,29 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
                 {bill.description && <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px' }}>{bill.description}</div>}
               </div>
 
-              {/* Items Table */}
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '32px' }}>
                 <thead>
-                  <tr style={{ background: '#0066FF' }}>
-                    <th style={{ padding: '10px 12px', fontSize: '11px', fontWeight: '700', color: 'white', textAlign: 'left', borderRadius: '6px 0 0 0' }}>Deskripsi</th>
-                    <th style={{ padding: '10px 12px', fontSize: '11px', fontWeight: '700', color: 'white', textAlign: 'right' }}>Qty</th>
-                    <th style={{ padding: '10px 12px', fontSize: '11px', fontWeight: '700', color: 'white', textAlign: 'right' }}>Harga</th>
-                    <th style={{ padding: '10px 12px', fontSize: '11px', fontWeight: '700', color: 'white', textAlign: 'right', borderRadius: '0 6px 0 0' }}>Total</th>
+                  <tr>
+                    <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'left', borderBottom: '1px solid #E5E7EB' }}>DESKRIPSI</th>
+                    <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'right', borderBottom: '1px solid #E5E7EB' }}>QTY</th>
+                    <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'right', borderBottom: '1px solid #E5E7EB' }}>HARGA</th>
+                    <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'right', borderBottom: '1px solid #E5E7EB' }}>TOTAL</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bill.items?.map((item, i) => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid #F3F4F6', background: i % 2 === 1 ? '#F9FAFB' : 'white' }}>
-                      <td style={{ padding: '10px 12px' }}>
-                        <div style={{ fontWeight: '600', fontSize: '13px' }}>{item.name}</div>
-                        {item.description && <div style={{ fontSize: '11px', color: '#6B7280' }}>{item.description}</div>}
+                    <tr key={item.id} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                      <td style={{ padding: '16px 0' }}>
+                        <div style={{ fontWeight: '500', fontSize: '13px', color: '#111827' }}>{item.name}</div>
+                        {item.description && <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '4px' }}>{item.description}</div>}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontSize: '13px', color: '#374151' }}>
+                      <td style={{ padding: '16px 0', textAlign: 'right', fontSize: '13px', color: '#4B5563' }}>
                         {item.quantity} {item.unit}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontSize: '13px', color: '#374151' }}>
+                      <td style={{ padding: '16px 0', textAlign: 'right', fontSize: '13px', color: '#4B5563' }}>
                         {formatCurrency(item.unit_price)}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontSize: '13px', fontWeight: '700' }}>
+                      <td style={{ padding: '16px 0', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#111827' }}>
                         {formatCurrency(item.total)}
                       </td>
                     </tr>
@@ -286,12 +284,12 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  padding: '12px 0 0',
-                  borderTop: '2px solid #0066FF',
-                  marginTop: '8px',
+                  padding: '16px 0 0',
+                  borderTop: '1px solid #111827',
+                  marginTop: '12px',
                 }}>
-                  <span style={{ fontSize: '16px', fontWeight: '800' }}>TOTAL</span>
-                  <span style={{ fontSize: '20px', fontWeight: '900', color: '#0066FF' }}>
+                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#111827' }}>TOTAL</span>
+                  <span style={{ fontSize: '18px', fontWeight: '800', color: '#111827' }}>
                     {formatCurrency(bill.total)}
                   </span>
                 </div>
@@ -299,14 +297,12 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
 
               {bill.notes && (
                 <div style={{
-                  marginTop: '24px',
-                  padding: '14px 16px',
-                  background: '#FFFBEB',
-                  borderLeft: '4px solid #F59E0B',
-                  borderRadius: '0 8px 8px 0',
+                  marginTop: '40px',
+                  paddingTop: '24px',
+                  borderTop: '1px solid #E5E7EB',
                 }}>
-                  <div style={{ fontSize: '10px', fontWeight: '700', color: '#92400E', textTransform: 'uppercase', marginBottom: '4px' }}>Catatan</div>
-                  <div style={{ fontSize: '13px', color: '#78350F' }}>{bill.notes}</div>
+                  <div style={{ fontSize: '10px', fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', marginBottom: '8px' }}>CATATAN</div>
+                  <div style={{ fontSize: '13px', color: '#4B5563', lineHeight: 1.6 }}>{bill.notes}</div>
                 </div>
               )}
             </div>
