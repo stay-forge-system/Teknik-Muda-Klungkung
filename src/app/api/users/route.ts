@@ -54,12 +54,9 @@ export async function POST(request: NextRequest) {
 
   const adminClient = createAdminClient();
 
-  // Create auth user
-  const { data: newUser, error: authError } = await adminClient.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { full_name },
+  // Invite auth user via email
+  const { data: newUser, error: authError } = await adminClient.auth.admin.inviteUserByEmail(email, {
+    data: { full_name },
   });
 
   if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });

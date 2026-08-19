@@ -23,7 +23,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<{ id: string, name: string } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -31,7 +32,6 @@ export default function UsersPage() {
   const [form, setForm] = useState({
     full_name: '',
     email: '',
-    password: '',
     role: 'teknisi' as UserRole,
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -68,8 +68,6 @@ export default function UsersPage() {
     if (!form.full_name.trim()) errs.full_name = 'Nama wajib diisi';
     if (!form.email.trim()) errs.email = 'Email wajib diisi';
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Format email tidak valid';
-    if (!form.password) errs.password = 'Password wajib diisi';
-    else if (form.password.length < 6) errs.password = 'Password minimal 6 karakter';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -116,7 +114,8 @@ export default function UsersPage() {
       showAlert('success', 'User berhasil dihapus');
       fetchUsers();
     }
-    setDeleteConfirm(null);
+    setUserToDelete(null);
+    setDeleteConfirmText('');
   };
 
   const canManageUser = (targetRole: string) => {
@@ -309,26 +308,18 @@ export default function UsersPage() {
                       <td>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
                           {canManage && !isSelf ? (
-                            deleteConfirm === user.id ? (
-                              <div style={{ display: 'flex', gap: '4px' }}>
-                                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(user.id)}>
-                                  Hapus
-                                </button>
-                                <button className="btn btn-secondary btn-sm" onClick={() => setDeleteConfirm(null)}>
-                                  Batal
-                                </button>
-                              </div>
-                            ) : (
                               <button
                                 className="btn btn-ghost btn-icon btn-sm"
-                                onClick={() => setDeleteConfirm(user.id)}
+                                onClick={() => {
+                                  setUserToDelete({ id: user.id, name: user.full_name });
+                                  setDeleteConfirmText('');
+                                }}
                                 aria-label={`Hapus ${user.full_name}`}
                                 style={{ color: 'var(--danger)' }}
                                 title="Hapus user"
                               >
                                 <Trash2 size={14} />
                               </button>
-                            )
                           ) : (
                             <span style={{ fontSize: '12px', color: 'var(--text-faint)' }}>—</span>
                           )}
@@ -361,7 +352,7 @@ export default function UsersPage() {
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             >
               <div className="modal-header">
-                <span className="modal-title">Tambah User Baru</span>
+                <span className="modal-title">Undang User Baru</span>
                 <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)} aria-label="Tutup">
                   <X size={18} />
                 </button>
@@ -442,20 +433,6 @@ export default function UsersPage() {
                   />
                   {formErrors.email && <span className="form-error">{formErrors.email}</span>}
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label required">Password</label>
-                  <input
-                    type="password"
-                    className={`form-input ${formErrors.password ? 'error' : ''}`}
-                    placeholder="Minimal 6 karakter"
-                    value={form.password}
-                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                    id="user-password-input"
-                  />
-                  {formErrors.password && <span className="form-error">{formErrors.password}</span>}
-                  <span className="form-hint">User bisa ganti password setelah login pertama</span>
-                </div>
               </div>
 
               <div className="modal-footer">
@@ -463,7 +440,76 @@ export default function UsersPage() {
                   Batal
                 </button>
                 <button className="btn btn-primary" onClick={handleCreate} disabled={saving} id="create-user-btn">
-                  {saving ? 'Membuat...' : 'Buat User'}
+                  {saving ? 'Mengundang...' : 'Kirim Undangan'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {userToDelete && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={(e) => e.target === e.currentTarget && setUserToDelete(null)}
+          >
+            <motion.div
+              className="modal"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              style={{ maxWidth: '400px' }}
+            >
+              <div className="modal-header">
+                <span className="modal-title" style={{ color: 'var(--danger)' }}>Konfirmasi Hapus User</span>
+                <button className="btn btn-ghost btn-icon" onClick={() => setUserToDelete(null)} aria-label="Tutup">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="modal-body">
+                <div style={{ 
+                  padding: '12px', 
+                  background: '#FEF2F2', 
+                  borderLeft: '4px solid #DC2626',
+                  borderRadius: '0 8px 8px 0',
+                  marginBottom: '16px' 
+                }}>
+                  <p style={{ color: '#991B1B', fontSize: '13px', lineHeight: 1.5 }}>
+                    Tindakan ini tidak dapat dibatalkan. User <strong>{userToDelete.name}</strong> akan kehilangan akses ke sistem secara permanen.
+                  </p>
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label">
+                    Ketik <strong>hapus-{userToDelete.name}</strong> untuk konfirmasi:
+                  </label>
+                  <input
+                    className="form-input"
+                    value={deleteConfirmText}
+                    onChange={e => setDeleteConfirmText(e.target.value)}
+                    placeholder={`hapus-${userToDelete.name}`}
+                    style={{ borderColor: deleteConfirmText === `hapus-${userToDelete.name}` ? '#16A34A' : 'var(--border)' }}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setUserToDelete(null)}>
+                  Batal
+                </button>
+                <button 
+                  className="btn btn-danger" 
+                  onClick={() => handleDelete(userToDelete.id)} 
+                  disabled={deleteConfirmText !== `hapus-${userToDelete.name}`}
+                >
+                  Hapus Permanen
                 </button>
               </div>
             </motion.div>
