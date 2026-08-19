@@ -51,8 +51,20 @@ export function generateBillHTML(bill: Bill): string {
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #111827; }
-    .page { max-width: 794px; margin: 0 auto; padding: 48px; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; }
+    .page { max-width: 794px; margin: 0 auto; padding: 48px; position: relative; overflow: hidden; }
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 140px;
+      font-weight: 900;
+      color: rgba(0, 0, 0, 0.04);
+      pointer-events: none;
+      z-index: 100;
+      letter-spacing: 24px;
+    }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; position: relative; z-index: 10; }
     .logo-section h1 { font-size: 28px; font-weight: 900; color: #111827; letter-spacing: -1px; }
     .logo-section p { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
     .bill-meta { text-align: right; }
@@ -88,6 +100,7 @@ export function generateBillHTML(bill: Bill): string {
 </head>
 <body>
 <div class="page" id="bill-pdf">
+  ${bill.status === 'draft' ? `<div class="watermark">DRAFT</div>` : ''}
   <!-- Header -->
   <div class="header">
     <div class="logo-section">
@@ -99,7 +112,6 @@ export function generateBillHTML(bill: Bill): string {
     </div>
     <div class="bill-meta">
       <div class="bill-number">${bill.bill_number}</div>
-      <div class="status-badge">${statusLabel[bill.status]}</div>
       <div style="font-size:12px; color:#6B7280; margin-top:12px;">
         <div>Tanggal: ${formatDate(bill.issue_date)}</div>
         ${bill.due_date ? `<div>Jatuh tempo: ${formatDate(bill.due_date)}</div>` : ''}
