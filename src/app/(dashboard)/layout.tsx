@@ -94,11 +94,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Navigation */}
       <nav className="sidebar-nav" style={{ flex: 1 }}>
         {navItems.map((section) => {
-          const visibleItems = section.items.filter(item => 
+          const visibleItems = section.items.filter(item =>
             !(item as any).adminOnly || profile?.role === 'owner' || profile?.role === 'admin'
           );
           if (visibleItems.length === 0) return null;
-          
+
           return (
             <div key={section.label}>
               <div className="nav-section-label">{section.label}</div>
