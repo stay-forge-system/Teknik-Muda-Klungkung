@@ -356,7 +356,8 @@ export default function ProductsPage() {
                     <div className="form-group">
                       <label className="form-label required">Kategori</label>
                       <select className={`form-select ${errors.category ? 'error' : ''}`} {...register('category')}>
-                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        <option value="">Pilih Kategori</option>
+                        {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                       </select>
                     </div>
                     <div className="form-group">
