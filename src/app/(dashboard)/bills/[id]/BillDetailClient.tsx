@@ -195,6 +195,8 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
                   <div style={{ fontSize: '28px', fontWeight: '900', color: '#111827', letterSpacing: '-1px' }}>TMK</div>
                   <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginTop: '4px' }}>Teknik Muda Klungkung</div>
                   <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>Solusi Teknologi & Keamanan Terpadu</div>
+                  <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '8px' }}>CCTV • Access Point • Instalasi Listrik</div>
+                  <div style={{ fontSize: '11px', color: '#6B7280' }}>Kabel LAN/FO • Cleaning AC</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#111827' }}>{bill.bill_number}</div>
@@ -239,15 +241,19 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
               <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '32px' }}>
                 <thead>
                   <tr>
+                    <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'left', borderBottom: '1px solid #E5E7EB', width: '32px' }}>#</th>
                     <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'left', borderBottom: '1px solid #E5E7EB' }}>DESKRIPSI</th>
                     <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'right', borderBottom: '1px solid #E5E7EB' }}>QTY</th>
-                    <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'right', borderBottom: '1px solid #E5E7EB' }}>HARGA</th>
+                    <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'right', borderBottom: '1px solid #E5E7EB' }}>HARGA SATUAN</th>
                     <th style={{ padding: '12px 0', fontSize: '11px', fontWeight: '600', color: '#6B7280', textAlign: 'right', borderBottom: '1px solid #E5E7EB' }}>TOTAL</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bill.items?.map((item, i) => (
                     <tr key={item.id} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                      <td style={{ padding: '16px 0', fontSize: '13px', color: '#374151' }}>
+                        {i + 1}
+                      </td>
                       <td style={{ padding: '16px 0' }}>
                         <div style={{ fontWeight: '500', fontSize: '13px', color: '#111827' }}>{item.name}</div>
                         {item.description && <div style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '4px' }}>{item.description}</div>}
@@ -308,6 +314,26 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
                   <div style={{ fontSize: '13px', color: '#4B5563', lineHeight: 1.6 }}>{bill.notes}</div>
                 </div>
               )}
+
+              {/* Footer to match PDF */}
+              <div style={{
+                marginTop: '40px',
+                paddingTop: '24px',
+                borderTop: '1px solid #E5E7EB',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#9CA3AF' }}>Terima kasih atas kepercayaan Anda!</div>
+                  <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>Dokumen ini digenerate secara otomatis oleh sistem TMK.</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ width: '140px', borderTop: '1px solid #D1D5DB', margin: '40px auto 0' }}></div>
+                  <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '8px' }}>TTD & Stempel</div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', color: '#111827', marginTop: '2px' }}>TMK (Teknik Muda Klungkung)</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
