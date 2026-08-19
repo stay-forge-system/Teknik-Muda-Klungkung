@@ -38,7 +38,7 @@ const container = {
   show: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
 
-const item = {
+const item: any = {
   hidden: { opacity: 0, y: 16 },
   show: { opacity: 1, y: 0, transition: { type: 'spring', damping: 20, stiffness: 200 } },
 };
@@ -128,7 +128,7 @@ export default function DashboardClient({ stats, recentBills }: Props) {
       </motion.div>
 
       {/* Bottom Grid */}
-      <div className="grid" style={{ gridTemplateColumns: '1fr 300px', gap: '24px' }}>
+      <div className="grid grid-layout-sidebar" style={{ gridTemplateColumns: '1fr 300px', gap: '24px' }}>
         {/* Recent Bills */}
         <motion.div
           className="card"

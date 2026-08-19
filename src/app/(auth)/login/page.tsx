@@ -46,14 +46,14 @@ export default function LoginPage() {
     { icon: Camera, label: 'CCTV & Security' },
     { icon: Wifi, label: 'Access Point' },
     { icon: Zap, label: 'Instalasi Listrik' },
-    { icon: Wind, label: 'Cleaning AC' },
+    { icon: Wind, label: 'Air Conditioner' },
   ];
 
   return (
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      background: 'var(--bg-primary)',
+      background: 'var(--login-bg)',
     }}>
       {/* Left Panel */}
       <motion.div
@@ -104,9 +104,18 @@ export default function LoginPage() {
               color: 'white',
               letterSpacing: '-2px',
               lineHeight: 1,
-              marginBottom: '12px',
+              marginBottom: '4px',
             }}>
               TMK
+            </div>
+            <div style={{
+              fontSize: '24px',
+              color: 'rgba(255,255,255,0.9)',
+              fontWeight: '700',
+              marginBottom: '12px',
+              letterSpacing: '-0.5px',
+            }}>
+              Teknik Muda Klungkung
             </div>
             <div style={{
               fontSize: '18px',
@@ -114,7 +123,7 @@ export default function LoginPage() {
               fontWeight: '500',
               marginBottom: '48px',
             }}>
-              Sistem Billing & Manajemen
+              Core System
             </div>
           </motion.div>
 
@@ -131,15 +140,7 @@ export default function LoginPage() {
               marginBottom: '16px',
               letterSpacing: '-0.5px',
             }}>
-              Kelola Bisnis Anda<br />dengan Lebih Mudah
-            </p>
-            <p style={{
-              fontSize: '15px',
-              color: 'rgba(255,255,255,0.6)',
-              lineHeight: 1.7,
-              maxWidth: '360px',
-            }}>
-              Buat invoice profesional, kelola produk & klien, dan pantau laporan keuangan dalam satu platform.
+              Innovation is Our Foundation,<br />Growth is Our Future.
             </p>
           </motion.div>
 
@@ -184,7 +185,8 @@ export default function LoginPage() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         style={{
-          width: '460px',
+          width: '100%',
+          maxWidth: '460px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -192,18 +194,24 @@ export default function LoginPage() {
           flexShrink: 0,
         }}
       >
-        <div style={{ width: '100%', maxWidth: '360px' }}>
+        <div className="mobile-form-container" style={{ width: '100%', maxWidth: '360px' }}>
+          {/* Mobile Header */}
+          <div className="mobile-header" style={{ marginBottom: '80px', textAlign: 'center' }}>
+            <div style={{ fontSize: '36px', fontWeight: '900', color: 'white', lineHeight: 1 }}>TMK</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginTop: '4px' }}>Teknik Muda Klungkung</div>
+          </div>
+
           <div style={{ marginBottom: '40px' }}>
-            <div style={{
+            <div className="mobile-text-white mobile-welcome-text" style={{
               fontSize: '28px',
               fontWeight: '800',
               color: 'var(--text-primary)',
               letterSpacing: '-0.5px',
               marginBottom: '8px',
             }}>
-              Selamat datang 👋
+              Selamat datang
             </div>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+            <p className="mobile-text-light" style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
               Masuk ke akun TMK Anda
             </p>
           </div>
@@ -220,7 +228,7 @@ export default function LoginPage() {
             )}
 
             <div className="form-group">
-              <label className="form-label required" htmlFor="email">Email</label>
+              <label className="form-label required mobile-text-white" htmlFor="email">Email</label>
               <input
                 id="email"
                 type="email"
@@ -235,7 +243,7 @@ export default function LoginPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label required" htmlFor="password">Password</label>
+              <label className="form-label required mobile-text-white" htmlFor="password">Password</label>
               <div style={{ position: 'relative' }}>
                 <input
                   id="password"
@@ -293,8 +301,28 @@ export default function LoginPage() {
           </form>
 
           <style>{`
+            :root { --login-bg: linear-gradient(135deg, #FAFAFA 0%, #EBF2FF 100%); }
+            @media (prefers-color-scheme: dark) { :root { --login-bg: linear-gradient(135deg, #0A0A0A 0%, #001233 100%); } }
             @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-            @media (max-width: 768px) { .hidden-mobile { display: none !important; } }
+            .mobile-header { display: none; }
+            @media (max-width: 768px) { 
+              :root { --login-bg: linear-gradient(135deg, #001A4D 0%, #0033A0 50%, #0066FF 100%); }
+              .hidden-mobile { display: none !important; }
+              .mobile-header { display: block; }
+              .mobile-text-white { color: white !important; }
+              .mobile-text-light { color: rgba(255,255,255,0.8) !important; }
+              .form-input { border-color: rgba(255,255,255,0.2) !important; }
+              .mobile-form-container { text-align: center; }
+              .mobile-form-container .form-label { text-align: left; }
+              .mobile-form-container .form-input { text-align: left; }
+              .mobile-welcome-text { font-size: 24px !important; }
+              .mobile-form-container .btn-primary { 
+                background: white !important; 
+                color: black !important; 
+                font-weight: 800 !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+              }
+            }
           `}</style>
         </div>
       </motion.div>

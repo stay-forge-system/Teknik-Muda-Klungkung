@@ -172,7 +172,7 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px' }}>
+      <div className="grid grid-layout-sidebar" style={{ gridTemplateColumns: '1fr 280px', gap: '20px' }}>
         {/* Bill Preview */}
         <div className="card">
           <div className="card-header">
@@ -190,7 +190,8 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
                 <div>
                   <div style={{ fontSize: '28px', fontWeight: '900', color: '#0066FF' }}>TMK</div>
-                  <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '4px' }}>Solusi Teknologi & Keamanan Terpadu</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#111827', marginTop: '4px' }}>Teknik Muda Klungkung</div>
+                  <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px' }}>Solusi Teknologi & Keamanan Terpadu</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#111827' }}>{bill.bill_number}</div>
@@ -217,7 +218,7 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
               }}>
                 <div>
                   <div style={{ fontSize: '10px', fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Dari</div>
-                  <div style={{ fontWeight: '700', fontSize: '14px' }}>PT. TMK Indonesia</div>
+                  <div style={{ fontWeight: '700', fontSize: '14px' }}>TMK (Teknik Muda Klungkung)</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '10px', fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Kepada</div>

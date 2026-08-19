@@ -17,6 +17,7 @@ import {
   X,
   Bell,
   User,
+  UserCog,
 } from 'lucide-react';
 import { Profile } from '@/types';
 
@@ -39,6 +40,12 @@ const navItems = [
     label: 'Laporan',
     items: [
       { href: '/reports', icon: BarChart3, label: 'Laporan' },
+    ],
+  },
+  {
+    label: 'Pengaturan',
+    items: [
+      { href: '/users', icon: UserCog, label: 'User & Akses', adminOnly: true },
     ],
   },
 ];
@@ -81,32 +88,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="brand">TMK</div>
-        <div className="tagline">Sistem Billing &<br />Manajemen Profesional</div>
+        <div className="tagline">Core System</div>
       </div>
 
       {/* Navigation */}
       <nav className="sidebar-nav" style={{ flex: 1 }}>
-        {navItems.map((section) => (
-          <div key={section.label}>
-            <div className="nav-section-label">{section.label}</div>
-            {section.items.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`nav-item ${active ? 'active' : ''}`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <Icon className="nav-icon" size={17} />
-                  <span style={{ flex: 1 }}>{item.label}</span>
-                  {active && <ChevronRight size={14} style={{ opacity: 0.5 }} />}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+        {navItems.map((section) => {
+          const visibleItems = section.items.filter(item => 
+            !(item as any).adminOnly || profile?.role === 'owner' || profile?.role === 'admin'
+          );
+          if (visibleItems.length === 0) return null;
+          
+          return (
+            <div key={section.label}>
+              <div className="nav-section-label">{section.label}</div>
+              {visibleItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`nav-item ${active ? 'active' : ''}`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <Icon className="nav-icon" size={17} />
+                    <span style={{ flex: 1 }}>{item.label}</span>
+                    {active && <ChevronRight size={14} style={{ opacity: 0.5 }} />}
+                  </Link>
+                );
+              })}
+            </div>
+          );
+        })}
       </nav>
 
       {/* Footer */}
@@ -136,8 +150,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {profile.full_name}
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'capitalize' }}>
-                {profile.role}
+              <div style={{
+                fontSize: '11px',
+                color: profile.role === 'owner' ? '#D97706' : profile.role === 'admin' ? 'var(--accent)' : 'var(--text-muted)',
+                textTransform: 'capitalize',
+                fontWeight: profile.role === 'owner' ? '700' : '500',
+              }}>
+                {profile.role === 'owner' ? '👑 Owner' : profile.role === 'admin' ? 'Admin' : profile.role === 'teknisi' ? 'Teknisi' : 'Viewer'}
               </div>
             </div>
           </div>

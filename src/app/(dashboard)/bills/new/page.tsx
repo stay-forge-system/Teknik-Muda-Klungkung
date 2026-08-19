@@ -23,7 +23,7 @@ export default function NewBillPage() {
   const [productQuery, setProductQuery] = useState('');
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<BillFormData>({
-    resolver: zodResolver(billSchema),
+    resolver: zodResolver(billSchema) as any,
     defaultValues: {
       issue_date: new Date().toISOString().split('T')[0],
       discount: 0,
@@ -172,7 +172,7 @@ export default function NewBillPage() {
           <div className="card-header">
             <span className="card-title">Informasi Bill</span>
           </div>
-          <div className="card-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="card-body grid grid-cols-2 gap-4">
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
               <label className="form-label required">Klien</label>
               <select
@@ -433,7 +433,7 @@ export default function NewBillPage() {
         </div>
 
         {/* Totals & Notes */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', alignItems: 'start' }}>
+        <div className="grid grid-layout-sidebar" style={{ gridTemplateColumns: '1fr auto', gap: '20px', alignItems: 'start' }}>
           {/* Notes */}
           <div className="card">
             <div className="card-header">

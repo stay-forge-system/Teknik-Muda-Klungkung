@@ -50,8 +50,8 @@ export default function ProductsPage() {
     setValue,
     formState: { errors },
   } = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
-    defaultValues: { is_custom_price: false, price: 0, unit: 'pcs' },
+    resolver: zodResolver(productSchema) as any,
+    defaultValues: { is_custom_price: false, price: 0, unit: 'pcs', category: 'CCTV' },
   });
 
   const isCustomPrice = watch('is_custom_price');
@@ -227,15 +227,14 @@ export default function ProductsPage() {
                         <span style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '5px',
-                          padding: '3px 9px',
-                          borderRadius: '20px',
-                          fontSize: '11.5px',
-                          fontWeight: '600',
-                          background: catStyle.bg,
-                          color: catStyle.color,
+                          padding: '4px 10px',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          letterSpacing: '0.3px',
+                          background: catStyle.color,
+                          color: 'white',
                         }}>
-                          <Tag size={10} />
                           {product.category}
                         </span>
                       </td>

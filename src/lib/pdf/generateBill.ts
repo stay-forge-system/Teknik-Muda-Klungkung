@@ -92,7 +92,8 @@ export function generateBillHTML(bill: Bill): string {
   <div class="header">
     <div class="logo-section">
       <h1>TMK</h1>
-      <p>Solusi Teknologi & Keamanan Terpadu</p>
+      <p style="font-size:16px; font-weight:700; color:#111827; margin-top:4px;">Teknik Muda Klungkung</p>
+      <p style="margin-top:4px;">Solusi Teknologi & Keamanan Terpadu</p>
       <p style="margin-top:8px; font-size:12px; color:#374151;">CCTV • Access Point • Instalasi Listrik</p>
       <p style="font-size:12px; color:#374151;">Kabel LAN/FO • Cleaning AC</p>
     </div>
@@ -110,7 +111,7 @@ export function generateBillHTML(bill: Bill): string {
   <div class="info-grid">
     <div class="info-block">
       <label>Dari</label>
-      <p class="name">PT. TMK Indonesia</p>
+      <p class="name">TMK (Teknik Muda Klungkung)</p>
       <p>Jl. Teknologi No. 1</p>
       <p>info@tmk.co.id</p>
     </div>
@@ -183,7 +184,7 @@ export function generateBillHTML(bill: Bill): string {
     <div class="signature">
       <div class="line" style="margin: 0 auto;"></div>
       <p>TTD & Stempel</p>
-      <p style="font-weight:600;">PT. TMK Indonesia</p>
+      <p style="font-weight:600;">TMK (Teknik Muda Klungkung)</p>
     </div>
   </div>
 </div>

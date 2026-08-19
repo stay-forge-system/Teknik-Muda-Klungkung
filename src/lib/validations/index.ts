@@ -15,7 +15,7 @@ export const productSchema = z.object({
   description: z.string().optional(),
   unit: z.enum(['pcs', 'meter', 'unit', 'set', 'titik', 'roll', 'box']),
   price: z.number().min(0, 'Harga tidak boleh negatif'),
-  is_custom_price: z.boolean().default(false),
+  is_custom_price: z.boolean(),
   stock: z.number().optional(),
 });
 
@@ -35,7 +35,7 @@ export const billItemSchema = z.object({
   quantity: z.number().min(0.01, 'Jumlah minimal 0.01'),
   unit: z.string().min(1, 'Satuan wajib diisi'),
   unit_price: z.number().min(0, 'Harga tidak boleh negatif'),
-  is_custom_price: z.boolean().default(false),
+  is_custom_price: z.boolean(),
 });
 
 export const billSchema = z.object({

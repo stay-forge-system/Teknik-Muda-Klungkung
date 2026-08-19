@@ -13,7 +13,7 @@ create table public.profiles (
   id uuid references auth.users on delete cascade primary key,
   full_name text not null,
   email text not null,
-  role text not null default 'teknisi' check (role in ('admin', 'teknisi', 'viewer')),
+  role text not null default 'teknisi' check (role in ('owner', 'admin', 'teknisi', 'viewer')),
   avatar_url text,
   created_at timestamptz not null default now()
 );
@@ -161,7 +161,10 @@ create policy "Profiles viewable by authenticated users"
 
 create policy "Users can update own profile"
   on public.profiles for update
-  to authenticated using (auth.uid() = id);
+  to authenticated using (
+    auth.uid() = id
+    or exists (select 1 from profiles where id = auth.uid() and role = 'owner')
+  );
 
 -- Clients: all authenticated can CRUD
 create policy "Clients viewable by authenticated"
@@ -171,38 +174,38 @@ create policy "Clients insertable by authenticated"
 create policy "Clients updatable by admin or creator"
   on public.clients for update to authenticated
   using (
-    exists (select 1 from profiles where id = auth.uid() and role = 'admin')
+    exists (select 1 from profiles where id = auth.uid() and role in ('owner', 'admin'))
     or created_by = auth.uid()
   );
 create policy "Clients deletable by admin"
   on public.clients for delete to authenticated
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (exists (select 1 from profiles where id = auth.uid() and role in ('owner', 'admin')));
 
 -- Products: all authenticated can read, admin/teknisi can write
 create policy "Products viewable by authenticated"
   on public.products for select to authenticated using (true);
 create policy "Products insertable by admin or teknisi"
   on public.products for insert to authenticated
-  with check (exists (select 1 from profiles where id = auth.uid() and role in ('admin', 'teknisi')));
+  with check (exists (select 1 from profiles where id = auth.uid() and role in ('owner', 'admin', 'teknisi')));
 create policy "Products updatable by admin or creator"
   on public.products for update to authenticated
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin') or created_by = auth.uid());
+  using (exists (select 1 from profiles where id = auth.uid() and role in ('owner', 'admin')) or created_by = auth.uid());
 create policy "Products deletable by admin"
   on public.products for delete to authenticated
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (exists (select 1 from profiles where id = auth.uid() and role in ('owner', 'admin')));
 
 -- Bills: all authenticated can read, admin/teknisi can write
 create policy "Bills viewable by authenticated"
   on public.bills for select to authenticated using (true);
 create policy "Bills insertable by admin or teknisi"
   on public.bills for insert to authenticated
-  with check (exists (select 1 from profiles where id = auth.uid() and role in ('admin', 'teknisi')));
+  with check (exists (select 1 from profiles where id = auth.uid() and role in ('owner', 'admin', 'teknisi')));
 create policy "Bills updatable by admin or creator"
   on public.bills for update to authenticated
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin') or created_by = auth.uid());
+  using (exists (select 1 from profiles where id = auth.uid() and role in ('owner', 'admin')) or created_by = auth.uid());
 create policy "Bills deletable by admin"
   on public.bills for delete to authenticated
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (exists (select 1 from profiles where id = auth.uid() and role in ('owner', 'admin')));
 
 -- Bill Items: follows bill RLS
 create policy "Bill items viewable by authenticated"

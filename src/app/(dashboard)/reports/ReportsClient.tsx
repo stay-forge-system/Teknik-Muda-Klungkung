@@ -53,7 +53,7 @@ export default function ReportsClient({ monthlyData, statusBreakdown, totalBills
         </div>
       </motion.div>
 
-      <div className="grid" style={{ gridTemplateColumns: '1fr 320px', gap: '20px' }}>
+      <div className="grid grid-layout-sidebar" style={{ gridTemplateColumns: '1fr 320px', gap: '20px' }}>
         {/* Monthly Revenue Chart */}
         <motion.div
           className="card"
