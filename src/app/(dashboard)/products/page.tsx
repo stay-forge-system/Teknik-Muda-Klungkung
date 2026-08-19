@@ -1,0 +1,416 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { Product, ProductCategory } from '@/types';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { productSchema, ProductFormData } from '@/lib/validations';
+import { motion, AnimatePresence } from 'framer-motion';
+import { formatCurrency } from '@/lib/pdf/generateBill';
+import { Plus, Search, Edit2, Trash2, X, Package, Tag, ToggleLeft, ToggleRight } from 'lucide-react';
+
+const CATEGORIES: ProductCategory[] = [
+  'CCTV', 'Access Point', 'Instalasi Listrik',
+  'Kabel LAN', 'Kabel FO', 'Kabel Listrik',
+  'Cleaning AC', 'Jasa', 'Lainnya',
+];
+
+const UNITS = ['pcs', 'meter', 'unit', 'set', 'titik', 'roll', 'box'];
+
+const categoryColors: Record<string, { color: string; bg: string }> = {
+  'CCTV': { color: '#DC2626', bg: '#FEF2F2' },
+  'Access Point': { color: '#2563EB', bg: '#EFF6FF' },
+  'Instalasi Listrik': { color: '#D97706', bg: '#FFFBEB' },
+  'Kabel LAN': { color: '#7C3AED', bg: '#F5F3FF' },
+  'Kabel FO': { color: '#0891B2', bg: '#ECFEFF' },
+  'Kabel Listrik': { color: '#EA580C', bg: '#FFF7ED' },
+  'Cleaning AC': { color: '#059669', bg: '#ECFDF5' },
+  'Jasa': { color: '#0066FF', bg: '#EBF2FF' },
+  'Lainnya': { color: '#6B7280', bg: '#F3F4F6' },
+};
+
+export default function ProductsPage() {
+  const supabase = createClient();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [showModal, setShowModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema),
+    defaultValues: { is_custom_price: false, price: 0, unit: 'pcs' },
+  });
+
+  const isCustomPrice = watch('is_custom_price');
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .order('category')
+      .order('name');
+    setProducts(data || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  const showAlert = (type: 'success' | 'error', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 3000);
+  };
+
+  const openCreateModal = () => {
+    reset({ is_custom_price: false, price: 0, unit: 'pcs', category: 'CCTV' });
+    setEditingProduct(null);
+    setShowModal(true);
+  };
+
+  const openEditModal = (product: Product) => {
+    setEditingProduct(product);
+    reset({
+      name: product.name,
+      category: product.category,
+      description: product.description || '',
+      unit: product.unit,
+      price: product.price,
+      is_custom_price: product.is_custom_price,
+      stock: product.stock,
+    });
+    setShowModal(true);
+  };
+
+  const onSubmit = async (data: ProductFormData) => {
+    setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (editingProduct) {
+      const { error } = await supabase
+        .from('products')
+        .update({ ...data, updated_at: new Date().toISOString() })
+        .eq('id', editingProduct.id);
+      if (error) { showAlert('error', 'Gagal mengupdate produk'); }
+      else { showAlert('success', 'Produk berhasil diupdate'); setShowModal(false); fetchProducts(); }
+    } else {
+      const { error } = await supabase
+        .from('products')
+        .insert({ ...data, created_by: user?.id });
+      if (error) { showAlert('error', 'Gagal menambah produk'); }
+      else { showAlert('success', 'Produk berhasil ditambah'); setShowModal(false); fetchProducts(); }
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) { showAlert('error', 'Gagal menghapus produk'); }
+    else { showAlert('success', 'Produk dihapus'); fetchProducts(); }
+    setDeleteConfirm(null);
+  };
+
+  const filtered = products.filter(p => {
+    const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchCategory = categoryFilter === 'all' || p.category === categoryFilter;
+    return matchSearch && matchCategory;
+  });
+
+  return (
+    <div>
+      <div className="page-header">
+        <div className="page-header-left">
+          <h1>Produk & Barang</h1>
+          <p>{products.length} produk tersedia</p>
+        </div>
+        <button className="btn btn-primary" onClick={openCreateModal} id="add-product-btn">
+          <Plus size={16} /> Tambah Produk
+        </button>
+      </div>
+
+      {/* Alert */}
+      <AnimatePresence>
+        {alert && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`alert alert-${alert.type}`}
+            style={{ marginBottom: '20px' }}
+          >
+            {alert.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <div className="search-bar" style={{ maxWidth: '300px' }}>
+          <Search className="search-icon" />
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Cari produk..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            id="product-search"
+          />
+        </div>
+        <select
+          className="form-select"
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          style={{ width: 'auto' }}
+          id="category-filter"
+        >
+          <option value="all">Semua Kategori</option>
+          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+
+      {/* Table */}
+      {loading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: '52px' }} />
+          ))}
+        </div>
+      ) : (
+        <div className="table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Nama Produk</th>
+                <th>Kategori</th>
+                <th>Satuan</th>
+                <th style={{ textAlign: 'right' }}>Harga</th>
+                <th>Tipe Harga</th>
+                <th style={{ textAlign: 'center' }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="empty-state">
+                      <Package className="empty-icon" />
+                      <h3>Tidak ada produk</h3>
+                      <p>{searchQuery ? 'Coba kata kunci lain' : 'Tambah produk pertama Anda'}</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filtered.map(product => {
+                  const catStyle = categoryColors[product.category] || categoryColors['Lainnya'];
+                  return (
+                    <tr key={product.id}>
+                      <td>
+                        <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '13.5px' }}>{product.name}</div>
+                        {product.description && (
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{product.description}</div>
+                        )}
+                      </td>
+                      <td>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '3px 9px',
+                          borderRadius: '20px',
+                          fontSize: '11.5px',
+                          fontWeight: '600',
+                          background: catStyle.bg,
+                          color: catStyle.color,
+                        }}>
+                          <Tag size={10} />
+                          {product.category}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>/{product.unit}</td>
+                      <td style={{ textAlign: 'right', fontWeight: '700', color: 'var(--text-primary)' }}>
+                        {formatCurrency(product.price)}
+                      </td>
+                      <td>
+                        <span className={`badge ${product.is_custom_price ? 'badge-sent' : 'badge-paid'}`}>
+                          {product.is_custom_price ? 'Custom' : 'Tetap'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                          <button
+                            className="btn btn-ghost btn-icon btn-sm"
+                            onClick={() => openEditModal(product)}
+                            title="Edit"
+                            aria-label={`Edit ${product.name}`}
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          {deleteConfirm === product.id ? (
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button className="btn btn-danger btn-sm" onClick={() => handleDelete(product.id)}>Ya</button>
+                              <button className="btn btn-secondary btn-sm" onClick={() => setDeleteConfirm(null)}>Batal</button>
+                            </div>
+                          ) : (
+                            <button
+                              className="btn btn-ghost btn-icon btn-sm"
+                              onClick={() => setDeleteConfirm(product.id)}
+                              title="Hapus"
+                              aria-label={`Hapus ${product.name}`}
+                              style={{ color: 'var(--danger)' }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Product Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
+          >
+            <motion.div
+              className="modal"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            >
+              <div className="modal-header">
+                <span className="modal-title">
+                  {editingProduct ? 'Edit Produk' : 'Tambah Produk Baru'}
+                </span>
+                <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)} aria-label="Tutup">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label required">Nama Produk</label>
+                    <input
+                      className={`form-input ${errors.name ? 'error' : ''}`}
+                      placeholder="e.g. CCTV Hikvision 2MP"
+                      {...register('name')}
+                    />
+                    {errors.name && <span className="form-error">{errors.name.message}</span>}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="form-group">
+                      <label className="form-label required">Kategori</label>
+                      <select className={`form-select ${errors.category ? 'error' : ''}`} {...register('category')}>
+                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label required">Satuan</label>
+                      <select className={`form-select ${errors.unit ? 'error' : ''}`} {...register('unit')}>
+                        {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Deskripsi</label>
+                    <textarea
+                      className="form-textarea"
+                      placeholder="Deskripsi singkat produk (opsional)"
+                      rows={2}
+                      {...register('description')}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="form-group">
+                      <label className="form-label required">Harga (Rp)</label>
+                      <input
+                        type="number"
+                        className={`form-input ${errors.price ? 'error' : ''}`}
+                        placeholder="0"
+                        {...register('price', { valueAsNumber: true })}
+                      />
+                      {errors.price && <span className="form-error">{errors.price.message}</span>}
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Stok</label>
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="Opsional"
+                        {...register('stock', { valueAsNumber: true })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Custom Price Toggle */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 16px',
+                      background: 'var(--bg-tertiary)',
+                      borderRadius: 'var(--radius)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => setValue('is_custom_price', !isCustomPrice)}
+                  >
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        Harga Dapat Dikustomisasi
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        Aktifkan untuk item seperti kabel (harga per meter bisa diubah saat buat bill)
+                      </div>
+                    </div>
+                    {isCustomPrice
+                      ? <ToggleRight size={28} color="var(--accent)" />
+                      : <ToggleLeft size={28} color="var(--text-muted)" />
+                    }
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                    Batal
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={saving} id="save-product-btn">
+                    {saving ? 'Menyimpan...' : editingProduct ? 'Simpan Perubahan' : 'Tambah Produk'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

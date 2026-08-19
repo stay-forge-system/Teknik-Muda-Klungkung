@@ -1,0 +1,57 @@
+import { z } from 'zod';
+
+export const loginSchema = z.object({
+  email: z.string().email('Email tidak valid'),
+  password: z.string().min(6, 'Password minimal 6 karakter'),
+});
+
+export const productSchema = z.object({
+  name: z.string().min(1, 'Nama produk wajib diisi'),
+  category: z.enum([
+    'CCTV', 'Access Point', 'Instalasi Listrik',
+    'Kabel LAN', 'Kabel FO', 'Kabel Listrik',
+    'Cleaning AC', 'Jasa', 'Lainnya'
+  ]),
+  description: z.string().optional(),
+  unit: z.enum(['pcs', 'meter', 'unit', 'set', 'titik', 'roll', 'box']),
+  price: z.number().min(0, 'Harga tidak boleh negatif'),
+  is_custom_price: z.boolean().default(false),
+  stock: z.number().optional(),
+});
+
+export const clientSchema = z.object({
+  name: z.string().min(1, 'Nama klien wajib diisi'),
+  company: z.string().optional(),
+  email: z.string().email('Email tidak valid').optional().or(z.literal('')),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+});
+
+export const billItemSchema = z.object({
+  product_id: z.string().optional(),
+  name: z.string().min(1, 'Nama item wajib diisi'),
+  description: z.string().optional(),
+  quantity: z.number().min(0.01, 'Jumlah minimal 0.01'),
+  unit: z.string().min(1, 'Satuan wajib diisi'),
+  unit_price: z.number().min(0, 'Harga tidak boleh negatif'),
+  is_custom_price: z.boolean().default(false),
+});
+
+export const billSchema = z.object({
+  client_id: z.string().min(1, 'Klien wajib dipilih'),
+  title: z.string().min(1, 'Judul bill wajib diisi'),
+  description: z.string().optional(),
+  issue_date: z.string().min(1, 'Tanggal bill wajib diisi'),
+  due_date: z.string().optional(),
+  discount: z.number().min(0).default(0),
+  tax: z.number().min(0).default(0),
+  notes: z.string().optional(),
+  items: z.array(billItemSchema).min(1, 'Minimal satu item'),
+});
+
+export type LoginFormData = z.infer<typeof loginSchema>;
+export type ProductFormData = z.infer<typeof productSchema>;
+export type ClientFormData = z.infer<typeof clientSchema>;
+export type BillFormData = z.infer<typeof billSchema>;
+export type BillItemFormData = z.infer<typeof billItemSchema>;
