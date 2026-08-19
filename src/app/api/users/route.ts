@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
   // Invite auth user via email
   const { data: newUser, error: authError } = await adminClient.auth.admin.inviteUserByEmail(email, {
     data: { full_name },
+    redirectTo: `${request.nextUrl.origin}/auth/callback`,
   });
 
   if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
