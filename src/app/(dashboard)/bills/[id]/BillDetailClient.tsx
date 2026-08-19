@@ -220,11 +220,11 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
               }}>
                 <div>
                   <div style={{ fontSize: '10px', fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Dari</div>
-                  <div style={{ fontWeight: '700', fontSize: '14px' }}>TMK (Teknik Muda Klungkung)</div>
+                  <div style={{ fontWeight: '700', fontSize: '14px', color: '#111827' }}>TMK (Teknik Muda Klungkung)</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '10px', fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>Kepada</div>
-                  <div style={{ fontWeight: '700', fontSize: '14px' }}>{bill.client?.name}</div>
+                  <div style={{ fontWeight: '700', fontSize: '14px', color: '#111827' }}>{bill.client?.name}</div>
                   {bill.client?.company && <div style={{ fontSize: '12px', color: '#6B7280' }}>{bill.client.company}</div>}
                   {bill.client?.address && <div style={{ fontSize: '12px', color: '#6B7280' }}>{bill.client.address}</div>}
                   {bill.client?.phone && <div style={{ fontSize: '12px', color: '#6B7280' }}>{bill.client.phone}</div>}
@@ -232,7 +232,7 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '16px', fontWeight: '700' }}>{bill.title}</div>
+                <div style={{ fontSize: '16px', fontWeight: '700', color: '#111827' }}>{bill.title}</div>
                 {bill.description && <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px' }}>{bill.description}</div>}
               </div>
 
