@@ -18,6 +18,7 @@ import {
   Bell,
   User,
   UserCog,
+  Tag,
 } from 'lucide-react';
 import { Profile } from '@/types';
 
@@ -33,6 +34,7 @@ const navItems = [
     label: 'Manajemen',
     items: [
       { href: '/products', icon: Package, label: 'Produk & Barang' },
+      { href: '/categories', icon: Tag, label: 'Kategori' },
       { href: '/clients', icon: Users, label: 'Klien' },
     ],
   },
