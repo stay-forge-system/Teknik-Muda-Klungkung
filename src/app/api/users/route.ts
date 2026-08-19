@@ -25,7 +25,20 @@ export async function GET() {
     .order('created_at', { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(profiles);
+
+  // Fetch auth users to determine verification status
+  const adminClient = createAdminClient();
+  const { data: authData } = await adminClient.auth.admin.listUsers();
+
+  const profilesWithStatus = profiles?.map(p => {
+    const authUser = authData?.users.find(u => u.id === p.id);
+    return {
+      ...p,
+      is_verified: !!(authUser?.last_sign_in_at)
+    };
+  }) || [];
+
+  return NextResponse.json(profilesWithStatus);
 }
 
 // POST /api/users — create new user

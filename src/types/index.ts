@@ -7,6 +7,7 @@ export interface Profile {
   role: UserRole;
   avatar_url?: string;
   created_at: string;
+  is_verified?: boolean;
 }
 
 export type ProductCategory =

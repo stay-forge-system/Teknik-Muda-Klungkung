@@ -254,7 +254,18 @@ export default function UsersPage() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{user.email}</td>
+                      <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                        <div style={{ marginBottom: '8px', color: 'var(--text-primary)' }}>{user.email}</div>
+                        {user.is_verified ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10px', padding: '2px 8px', background: 'var(--success-bg)', color: 'var(--success)', border: '1px solid var(--success)', borderRadius: '12px', fontWeight: '700' }}>
+                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor' }} /> Aktif
+                          </span>
+                        ) : (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10px', padding: '2px 8px', background: 'var(--warning-bg)', color: 'var(--warning)', border: '1px solid var(--warning)', borderRadius: '12px', fontWeight: '700' }}>
+                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'currentColor' }} /> Menunggu Verifikasi
+                          </span>
+                        )}
+                      </td>
                       <td>
                         {canManage && !isSelf ? (
                           /* Editable role dropdown */
