@@ -402,6 +402,7 @@ export default function NewQuotationPage() {
                               <label style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Qty</label>
                               <input
                                 type="number" step="0.01" className="form-input" placeholder="1" style={{ fontSize: '13px' }}
+                                onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                 {...register(`items.${index}.quantity`, { valueAsNumber: true })}
                               />
                             </div>
@@ -434,6 +435,7 @@ export default function NewQuotationPage() {
                                 <label style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Disc %</label>
                                 <input
                                   type="number" className="form-input" placeholder="0" style={{ fontSize: '13px' }} max={100}
+                                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                   {...register(`items.${index}.discount_percent`, { valueAsNumber: true })}
                                 />
                               </div>

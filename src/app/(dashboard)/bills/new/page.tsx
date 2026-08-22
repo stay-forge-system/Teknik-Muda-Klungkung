@@ -416,6 +416,7 @@ function NewBillForm() {
                                 className="form-input"
                                 placeholder="1"
                                 style={{ fontSize: '13px' }}
+                                onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                 {...register(`items.${index}.quantity`, { valueAsNumber: true })}
                               />
                             </div>

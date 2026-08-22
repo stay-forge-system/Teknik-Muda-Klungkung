@@ -388,6 +388,7 @@ export default function ProductsPage() {
                       <label className="form-label">Stok</label>
                       <input
                         type="number"
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
                         className="form-input"
                         placeholder="Opsional"
                         {...register('stock', { valueAsNumber: true })}

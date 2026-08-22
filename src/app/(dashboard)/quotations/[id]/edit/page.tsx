@@ -166,34 +166,41 @@ export default function EditQuotationPage({ params }: { params: Promise<{ id: st
     }
 
     // Delete existing items
-    await supabase.from('quotation_items').delete().eq('quotation_id', id);
-
-    // Insert new items
-    const itemsToInsert = data.items.map((item, i) => {
-      const itemTotal = item.quantity * item.unit_price;
-      const disc = item.discount_percent || 0;
-      const netTotal = itemTotal - (itemTotal * disc / 100);
-      
-      return {
-        quotation_id: id,
-        product_id: item.product_id || null,
-        name: item.name,
-        description: item.description || null,
-        quantity: item.quantity,
-        unit: item.unit,
-        unit_price: item.unit_price,
-        discount_percent: disc,
-        total: netTotal,
-        is_custom_price: item.is_custom_price,
-        sort_order: i,
-      };
-    });
-
-    const { error: itemsError } = await supabase.from('quotation_items').insert(itemsToInsert);
-    if (itemsError) {
-      setError('Gagal menyimpan item penawaran');
+    const { error: delError } = await supabase.from('quotation_items').delete().eq('quotation_id', id);
+    if (delError) {
+      setError('Gagal menghapus item lama: ' + delError.message);
       setSaving(false);
       return;
+    }
+
+    // Insert new items
+    if (data.items.length > 0) {
+      const itemsToInsert = data.items.map((item, i) => {
+        const itemTotal = item.quantity * item.unit_price;
+        const disc = item.discount_percent || 0;
+        const netTotal = itemTotal - (itemTotal * disc / 100);
+        
+        return {
+          quotation_id: id,
+          product_id: item.product_id || null,
+          name: item.name,
+          description: item.description || null,
+          quantity: item.quantity,
+          unit: item.unit,
+          unit_price: item.unit_price,
+          discount_percent: disc,
+          total: netTotal,
+          is_custom_price: item.is_custom_price,
+          sort_order: i,
+        };
+      });
+
+      const { error: itemsError } = await supabase.from('quotation_items').insert(itemsToInsert);
+      if (itemsError) {
+        setError('Gagal menyimpan item penawaran: ' + itemsError.message);
+        setSaving(false);
+        return;
+      }
     }
 
     router.push(`/quotations/${id}`);
@@ -427,6 +434,7 @@ export default function EditQuotationPage({ params }: { params: Promise<{ id: st
                               <label style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Qty</label>
                               <input
                                 type="number" step="0.01" className="form-input" placeholder="1" style={{ fontSize: '13px' }}
+                                onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                 {...register(`items.${index}.quantity`, { valueAsNumber: true })}
                               />
                             </div>
@@ -459,6 +467,7 @@ export default function EditQuotationPage({ params }: { params: Promise<{ id: st
                                 <label style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Disc %</label>
                                 <input
                                   type="number" className="form-input" placeholder="0" style={{ fontSize: '13px' }} max={100}
+                                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                   {...register(`items.${index}.discount_percent`, { valueAsNumber: true })}
                                 />
                               </div>
