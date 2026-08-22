@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { CustomDatePicker } from '@/components/DatePicker';
 import { CurrencyInput } from '@/components/CurrencyInput';
 
-export default function NewBillPage() {
+function NewBillForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const quotationId = searchParams.get('quotation_id');
@@ -559,5 +559,13 @@ export default function NewBillPage() {
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
+  );
+}
+
+export default function NewBillPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat form...</div>}>
+      <NewBillForm />
+    </Suspense>
   );
 }
