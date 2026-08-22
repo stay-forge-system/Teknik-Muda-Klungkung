@@ -358,6 +358,8 @@ export default function EditQuotationPage({ params }: { params: Promise<{ id: st
                         }}
                       >
                         <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <input type="hidden" {...register(`items.${index}.product_id`)} />
+                          <input type="hidden" {...register(`items.${index}.is_custom_price`)} />
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
                             <div style={{ position: 'relative' }}>
                               <input

@@ -32,7 +32,7 @@ export const billItemSchema = z.object({
   quantity: z.number().min(0.01, 'Jumlah minimal 0.01'),
   unit: z.string().min(1, 'Satuan wajib diisi'),
   unit_price: z.number().min(0, 'Harga tidak boleh negatif'),
-  is_custom_price: z.boolean(),
+  is_custom_price: z.any().transform(v => v === true || v === 'true').catch(false),
 });
 
 export const billSchema = z.object({
@@ -55,7 +55,7 @@ export const quotationItemSchema = z.object({
   unit: z.string().min(1, 'Satuan wajib diisi'),
   unit_price: z.number().min(0, 'Harga tidak boleh negatif'),
   discount_percent: z.number().min(0).max(100).default(0),
-  is_custom_price: z.boolean(),
+  is_custom_price: z.any().transform(v => v === true || v === 'true').catch(false),
 });
 
 export const quotationSchema = z.object({
