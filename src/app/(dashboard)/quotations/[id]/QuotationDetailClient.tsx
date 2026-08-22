@@ -143,6 +143,11 @@ export default function QuotationDetailClient({ quotation: initialQuo }: Props) 
           <p>{quo.title}</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {(quo.status === 'draft' || quo.status === 'revised') && (
+            <Link href={`/quotations/${quo.id}/edit`} className="btn btn-primary">
+              <Edit2 size={15} /> Edit Penawaran
+            </Link>
+          )}
           <button className="btn btn-secondary" onClick={handlePrint}>
             <Printer size={15} /> Cetak
           </button>

@@ -29,6 +29,7 @@ export default function NewQuotationPage() {
     resolver: zodResolver(quotationSchema) as any,
     defaultValues: {
       issue_date: new Date().toISOString().split('T')[0],
+      valid_until: new Date().toISOString().split('T')[0],
       discount: 0,
       tax: 0,
       items: [],
