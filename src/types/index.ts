@@ -22,6 +22,7 @@ export type ProductUnit = 'pcs' | 'meter' | 'unit' | 'set' | 'titik' | 'roll' | 
 
 export interface Product {
   id: string;
+  sku_code?: string;
   name: string;
   category: ProductCategory;
   description?: string;
@@ -46,6 +47,45 @@ export interface Client {
 }
 
 export type BillStatus = 'draft' | 'sent' | 'paid' | 'cancelled';
+export type QuotationStatus = 'draft' | 'sent' | 'revised' | 'deal' | 'rejected';
+
+export interface QuotationItem {
+  id: string;
+  quotation_id: string;
+  product_id?: string;
+  name: string;
+  description?: string;
+  quantity: number;
+  unit: string;
+  unit_price: number;
+  discount_percent: number;
+  total: number;
+  is_custom_price: boolean;
+  sort_order: number;
+  product?: Product;
+}
+
+export interface Quotation {
+  id: string;
+  quotation_number: string;
+  client_id: string;
+  title: string;
+  description?: string;
+  status: QuotationStatus;
+  issue_date: string;
+  valid_until?: string;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  notes?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  client?: Client;
+  items?: QuotationItem[];
+  creator?: Profile;
+}
 
 export interface BillItem {
   id: string;
@@ -64,6 +104,7 @@ export interface BillItem {
 
 export interface Bill {
   id: string;
+  quotation_id?: string;
   bill_number: string;
   client_id: string;
   title: string;

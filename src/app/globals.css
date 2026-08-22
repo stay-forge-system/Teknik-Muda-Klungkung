@@ -441,10 +441,37 @@ body {
   box-shadow: 0 0 0 3px rgba(0,102,255,0.12);
 }
 
+/* Date input calendar icon styling */
+.form-input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.form-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .form-input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(0.8);
+  }
+}
+
 .form-input.error,
 .form-select.error {
   border-color: var(--danger);
   box-shadow: 0 0 0 3px rgba(220,38,38,0.1);
+}
+
+/* Hide native number input spinners */
+.form-input[type="number"]::-webkit-inner-spin-button, 
+.form-input[type="number"]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+.form-input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
 }
 
 .form-select {
@@ -764,6 +791,160 @@ table.data-table tbody tr:hover {
 .cursor-pointer { cursor: pointer; }
 .select-none { user-select: none; }
 .overflow-hidden { overflow: hidden; }
+
+/* ===== CUSTOM DATE PICKER (react-aria-components) ===== */
+.rac-date-picker {
+  display: flex;
+  flex-direction: column;
+}
+
+.rac-group {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rac-group[data-focus-within] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,102,255,0.12);
+}
+
+.rac-date-input {
+  display: flex;
+  flex: 1;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.rac-segment {
+  padding: 0 2px;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  border-radius: 2px;
+}
+
+.rac-segment[data-placeholder] {
+  color: var(--text-muted);
+}
+
+.rac-segment:focus {
+  background: var(--accent);
+  color: white;
+}
+
+.rac-button-calendar {
+  padding: 9px;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+  outline: none;
+}
+
+.rac-button-calendar:hover {
+  color: var(--text-primary);
+}
+
+.rac-popover {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-top: 4px;
+  z-index: 50;
+  animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rac-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.rac-calendar-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rac-calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  outline: none;
+}
+
+.rac-calendar-nav:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.rac-calendar-grid {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.rac-calendar-header-cell {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding-bottom: 8px;
+  text-align: center;
+}
+
+.rac-calendar-cell {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  outline: none;
+  margin: 2px auto;
+}
+
+.rac-calendar-cell:hover {
+  background: var(--surface-hover);
+}
+
+.rac-calendar-cell[data-selected] {
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+
+.rac-calendar-cell[data-outside-month] {
+  color: var(--text-faint);
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 /* ===== RESPONSIVE ===== */
 /* ===== RESPONSIVE ===== */

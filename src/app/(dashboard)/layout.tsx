@@ -19,6 +19,7 @@ import {
   User,
   UserCog,
   Tag,
+  ClipboardList,
 } from 'lucide-react';
 import { Profile } from '@/types';
 
@@ -27,6 +28,7 @@ const navItems = [
     label: 'Menu Utama',
     items: [
       { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { href: '/quotations', icon: ClipboardList, label: 'Surat Penawaran' },
       { href: '/bills', icon: FileText, label: 'Bill & Invoice' },
     ],
   },

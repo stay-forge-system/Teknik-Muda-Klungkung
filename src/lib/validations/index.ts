@@ -6,6 +6,7 @@ export const loginSchema = z.object({
 });
 
 export const productSchema = z.object({
+  sku_code: z.string().optional(),
   name: z.string().min(1, 'Nama produk wajib diisi'),
   category: z.string().min(1, 'Kategori wajib diisi'),
   description: z.string().optional(),
@@ -46,8 +47,33 @@ export const billSchema = z.object({
   items: z.array(billItemSchema).min(1, 'Minimal satu item'),
 });
 
+export const quotationItemSchema = z.object({
+  product_id: z.string().optional(),
+  name: z.string().min(1, 'Nama item wajib diisi'),
+  description: z.string().optional(),
+  quantity: z.number().min(0.01, 'Jumlah minimal 0.01'),
+  unit: z.string().min(1, 'Satuan wajib diisi'),
+  unit_price: z.number().min(0, 'Harga tidak boleh negatif'),
+  discount_percent: z.number().min(0).max(100).default(0),
+  is_custom_price: z.boolean(),
+});
+
+export const quotationSchema = z.object({
+  client_id: z.string().min(1, 'Klien wajib dipilih'),
+  title: z.string().min(1, 'Judul penawaran wajib diisi'),
+  description: z.string().optional(),
+  issue_date: z.string().min(1, 'Tanggal penawaran wajib diisi'),
+  valid_until: z.string().optional(),
+  discount: z.number().min(0).default(0),
+  tax: z.number().min(0).default(0),
+  notes: z.string().optional(),
+  items: z.array(quotationItemSchema).min(1, 'Minimal satu item'),
+});
+
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type ProductFormData = z.infer<typeof productSchema>;
 export type ClientFormData = z.infer<typeof clientSchema>;
 export type BillFormData = z.infer<typeof billSchema>;
 export type BillItemFormData = z.infer<typeof billItemSchema>;
+export type QuotationFormData = z.infer<typeof quotationSchema>;
+export type QuotationItemFormData = z.infer<typeof quotationItemSchema>;

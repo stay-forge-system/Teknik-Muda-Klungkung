@@ -1,23 +1,21 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { billSchema, BillFormData } from '@/lib/validations';
+import { quotationSchema, QuotationFormData } from '@/lib/validations';
 import { Product, Client } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '@/lib/pdf/generateBill';
-import { Plus, Trash2, Search, X, ArrowLeft, Save, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Search, X, ArrowLeft, Save, ChevronDown, Percent } from 'lucide-react';
 import Link from 'next/link';
 import { CustomDatePicker } from '@/components/DatePicker';
 import { CurrencyInput } from '@/components/CurrencyInput';
 
-export default function NewBillPage() {
+export default function NewQuotationPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const quotationId = searchParams.get('quotation_id');
   const supabase = createClient();
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -25,9 +23,10 @@ export default function NewBillPage() {
   const [error, setError] = useState('');
   const [productSearch, setProductSearch] = useState<number | null>(null);
   const [productQuery, setProductQuery] = useState('');
+  const [showItemDiscount, setShowItemDiscount] = useState(false);
 
-  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<BillFormData>({
-    resolver: zodResolver(billSchema) as any,
+  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<QuotationFormData>({
+    resolver: zodResolver(quotationSchema) as any,
     defaultValues: {
       issue_date: new Date().toISOString().split('T')[0],
       discount: 0,
@@ -41,8 +40,15 @@ export default function NewBillPage() {
   const watchDiscount = watch('discount') || 0;
   const watchTax = watch('tax') || 0;
 
-  const subtotal = watchItems.reduce((sum, item) =>
-    sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0);
+  const subtotal = watchItems.reduce((sum, item) => {
+    const qty = Number(item.quantity) || 0;
+    const price = Number(item.unit_price) || 0;
+    const itemTotal = qty * price;
+    const discPercent = Number(item.discount_percent) || 0;
+    const itemNet = itemTotal - (itemTotal * discPercent / 100);
+    return sum + itemNet;
+  }, 0);
+
   const total = subtotal - Number(watchDiscount) + Number(watchTax);
 
   useEffect(() => {
@@ -53,40 +59,9 @@ export default function NewBillPage() {
       ]);
       setClients(c || []);
       setProducts(p || []);
-
-      if (quotationId) {
-        const { data: quo } = await supabase
-          .from('quotations')
-          .select('*, items:quotation_items(*)')
-          .eq('id', quotationId)
-          .single();
-        
-        if (quo) {
-          setValue('client_id', quo.client_id);
-          setValue('title', quo.title);
-          setValue('description', quo.description || '');
-          setValue('discount', quo.discount);
-          setValue('tax', quo.tax);
-          setValue('notes', quo.notes || '');
-          
-          if (quo.items) {
-            quo.items.sort((a: any, b: any) => a.sort_order - b.sort_order);
-            const items = quo.items.map((item: any) => ({
-              product_id: item.product_id,
-              name: item.name,
-              description: item.description || '',
-              quantity: item.quantity,
-              unit: item.unit,
-              unit_price: item.unit_price,
-              is_custom_price: item.is_custom_price,
-            }));
-            setValue('items', items);
-          }
-        }
-      }
     };
     fetch();
-  }, [supabase, quotationId, setValue]);
+  }, [supabase]);
 
   const addProductToItem = (index: number, product: Product) => {
     setValue(`items.${index}.name`, product.name);
@@ -94,6 +69,7 @@ export default function NewBillPage() {
     setValue(`items.${index}.unit_price`, product.price);
     setValue(`items.${index}.product_id`, product.id);
     setValue(`items.${index}.is_custom_price`, product.is_custom_price);
+    setValue(`items.${index}.discount_percent`, 0);
     setProductSearch(null);
     setProductQuery('');
   };
@@ -105,43 +81,55 @@ export default function NewBillPage() {
       quantity: 1,
       unit: 'pcs',
       unit_price: 0,
+      discount_percent: 0,
       is_custom_price: false,
     });
   };
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(productQuery.toLowerCase()) ||
-    p.category.toLowerCase().includes(productQuery.toLowerCase())
+    p.category.toLowerCase().includes(productQuery.toLowerCase()) ||
+    (p.sku_code || '').toLowerCase().includes(productQuery.toLowerCase())
   );
 
-  const onSubmit = async (data: BillFormData) => {
+  const onSubmit = async (data: QuotationFormData) => {
     setSaving(true);
     setError('');
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Generate bill number
-    const { data: billCount } = await supabase
-      .from('bills')
-      .select('id', { count: 'exact', head: true });
-    const year = new Date().getFullYear();
-    const seq = ((billCount as any)?.count || 0) + 1;
-    const billNumber = `TMK-${year}-${String(seq).padStart(4, '0')}`;
+    // Generate quotation number via RPC or manually if RPC isn't available
+    const { data: qNum, error: rpcError } = await supabase.rpc('generate_quotation_number');
+    let quotationNumber = qNum;
+    
+    if (rpcError || !quotationNumber) {
+      // Fallback if RPC fails
+      const { data: qCount } = await supabase.from('quotations').select('id', { count: 'exact', head: true });
+      const year = new Date().getFullYear();
+      const month = String(new Date().getMonth() + 1).padStart(2, '0');
+      const seq = ((qCount as any)?.count || 0) + 1;
+      quotationNumber = `TMK-${month}-${year}-${String(seq).padStart(4, '0')}`;
+    }
 
-    const calculatedSubtotal = data.items.reduce(
-      (sum, item) => sum + item.quantity * item.unit_price, 0
-    );
+    const calculatedSubtotal = data.items.reduce((sum, item) => {
+      const qty = Number(item.quantity) || 0;
+      const price = Number(item.unit_price) || 0;
+      const disc = Number(item.discount_percent) || 0;
+      const itemTotal = qty * price;
+      return sum + (itemTotal - (itemTotal * disc / 100));
+    }, 0);
+    
     const calculatedTotal = calculatedSubtotal - (data.discount || 0) + (data.tax || 0);
 
-    const { data: bill, error: billError } = await supabase
-      .from('bills')
+    const { data: quo, error: quoError } = await supabase
+      .from('quotations')
       .insert({
-        bill_number: billNumber,
+        quotation_number: quotationNumber,
         client_id: data.client_id,
         title: data.title,
         description: data.description,
         issue_date: data.issue_date,
-        due_date: data.due_date || null,
+        valid_until: data.valid_until || null,
         subtotal: calculatedSubtotal,
         discount: data.discount || 0,
         tax: data.tax || 0,
@@ -149,39 +137,45 @@ export default function NewBillPage() {
         notes: data.notes,
         status: 'draft',
         created_by: user?.id,
-        quotation_id: quotationId || null,
       })
       .select()
       .single();
 
-    if (billError) {
-      setError('Gagal membuat bill: ' + billError.message);
+    if (quoError) {
+      setError('Gagal membuat surat penawaran: ' + quoError.message);
       setSaving(false);
       return;
     }
 
     // Insert items
-    const itemsToInsert = data.items.map((item, i) => ({
-      bill_id: bill.id,
-      product_id: item.product_id || null,
-      name: item.name,
-      description: item.description || null,
-      quantity: item.quantity,
-      unit: item.unit,
-      unit_price: item.unit_price,
-      total: item.quantity * item.unit_price,
-      is_custom_price: item.is_custom_price,
-      sort_order: i,
-    }));
+    const itemsToInsert = data.items.map((item, i) => {
+      const itemTotal = item.quantity * item.unit_price;
+      const disc = item.discount_percent || 0;
+      const netTotal = itemTotal - (itemTotal * disc / 100);
+      
+      return {
+        quotation_id: quo.id,
+        product_id: item.product_id || null,
+        name: item.name,
+        description: item.description || null,
+        quantity: item.quantity,
+        unit: item.unit,
+        unit_price: item.unit_price,
+        discount_percent: disc,
+        total: netTotal,
+        is_custom_price: item.is_custom_price,
+        sort_order: i,
+      };
+    });
 
-    const { error: itemsError } = await supabase.from('bill_items').insert(itemsToInsert);
+    const { error: itemsError } = await supabase.from('quotation_items').insert(itemsToInsert);
     if (itemsError) {
-      setError('Gagal menyimpan item bill');
+      setError('Gagal menyimpan item penawaran');
       setSaving(false);
       return;
     }
 
-    router.push(`/bills/${bill.id}`);
+    router.push(`/quotations/${quo.id}`);
   };
 
   return (
@@ -189,12 +183,12 @@ export default function NewBillPage() {
       <div className="page-header">
         <div className="page-header-left">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <Link href="/bills" className="btn btn-ghost btn-sm" style={{ padding: '6px 10px' }}>
+            <Link href="/quotations" className="btn btn-ghost btn-sm" style={{ padding: '6px 10px' }}>
               <ArrowLeft size={14} /> Kembali
             </Link>
           </div>
-          <h1>Buat Bill Baru</h1>
-          <p>Isi informasi bill dan tambahkan item layanan</p>
+          <h1>Buat Surat Penawaran</h1>
+          <p>Isi detail penawaran untuk klien Anda</p>
         </div>
       </div>
 
@@ -203,10 +197,10 @@ export default function NewBillPage() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Bill Info */}
+        {/* Info */}
         <div className="card" style={{ marginBottom: '20px' }}>
           <div className="card-header">
-            <span className="card-title">Informasi Bill</span>
+            <span className="card-title">Informasi Penawaran</span>
           </div>
           <div className="card-body grid grid-cols-2 gap-4">
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
@@ -226,17 +220,17 @@ export default function NewBillPage() {
             </div>
 
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-              <label className="form-label required">Judul Bill</label>
+              <label className="form-label required">Judul Penawaran</label>
               <input
                 className={`form-input ${errors.title ? 'error' : ''}`}
-                placeholder="e.g. Instalasi CCTV Gedung A"
+                placeholder="e.g. Penawaran Instalasi CCTV Gedung A"
                 {...register('title')}
               />
               {errors.title && <span className="form-error">{errors.title.message}</span>}
             </div>
 
             <div className="form-group">
-              <label className="form-label required">Tanggal Bill</label>
+              <label className="form-label required">Tanggal Dibuat</label>
               <Controller
                 control={control}
                 name="issue_date"
@@ -250,10 +244,10 @@ export default function NewBillPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Jatuh Tempo</label>
+              <label className="form-label">Berlaku Sampai (Valid Until)</label>
               <Controller
                 control={control}
-                name="due_date"
+                name="valid_until"
                 render={({ field }) => (
                   <CustomDatePicker
                     value={field.value}
@@ -264,7 +258,7 @@ export default function NewBillPage() {
             </div>
 
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-              <label className="form-label">Keterangan</label>
+              <label className="form-label">Keterangan / Pendahuluan</label>
               <textarea
                 className="form-textarea"
                 placeholder="Keterangan tambahan (opsional)"
@@ -278,10 +272,19 @@ export default function NewBillPage() {
         {/* Items */}
         <div className="card" style={{ marginBottom: '20px' }}>
           <div className="card-header">
-            <span className="card-title">Item Layanan</span>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={addEmptyItem} id="add-item-btn">
-              <Plus size={14} /> Tambah Item
-            </button>
+            <span className="card-title">Item Penawaran</span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${showItemDiscount ? 'btn-primary' : 'btn-secondary'}`} 
+                onClick={() => setShowItemDiscount(!showItemDiscount)}
+              >
+                <Percent size={14} /> {showItemDiscount ? 'Sembunyikan Diskon Item' : 'Tampilkan Diskon Item'}
+              </button>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={addEmptyItem}>
+                <Plus size={14} /> Tambah Item
+              </button>
+            </div>
           </div>
           <div className="card-body">
             {fields.length === 0 ? (
@@ -292,7 +295,7 @@ export default function NewBillPage() {
                 border: '2px dashed var(--border)',
                 borderRadius: 'var(--radius-lg)',
               }}>
-                <p style={{ marginBottom: '12px' }}>Belum ada item. Tambahkan layanan atau produk.</p>
+                <p style={{ marginBottom: '12px' }}>Belum ada item penawaran.</p>
                 <button type="button" className="btn btn-primary btn-sm" onClick={addEmptyItem}>
                   <Plus size={14} /> Tambah Item Pertama
                 </button>
@@ -303,7 +306,9 @@ export default function NewBillPage() {
                   {fields.map((field, index) => {
                     const qty = Number(watchItems[index]?.quantity) || 0;
                     const price = Number(watchItems[index]?.unit_price) || 0;
-                    const itemTotal = qty * price;
+                    const disc = Number(watchItems[index]?.discount_percent) || 0;
+                    const gross = qty * price;
+                    const itemTotal = gross - (gross * disc / 100);
 
                     return (
                       <motion.div
@@ -320,7 +325,6 @@ export default function NewBillPage() {
                         }}
                       >
                         <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          {/* Item Name + Product Picker */}
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
                             <div style={{ position: 'relative' }}>
                               <input
@@ -330,18 +334,10 @@ export default function NewBillPage() {
                               />
                               {productSearch === index && (
                                 <div style={{
-                                  position: 'absolute',
-                                  top: '100%',
-                                  left: 0,
-                                  right: 0,
-                                  background: 'var(--surface)',
-                                  border: '1px solid var(--border)',
-                                  borderRadius: 'var(--radius)',
-                                  boxShadow: 'var(--shadow-lg)',
-                                  zIndex: 10,
-                                  maxHeight: '240px',
-                                  overflowY: 'auto',
-                                  marginTop: '4px',
+                                  position: 'absolute', top: '100%', left: 0, right: 0,
+                                  background: 'var(--surface)', border: '1px solid var(--border)',
+                                  borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)',
+                                  zIndex: 10, maxHeight: '240px', overflowY: 'auto', marginTop: '4px',
                                 }}>
                                   <div style={{ padding: '8px', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 10 }}>
                                     <div style={{ position: 'relative' }}>
@@ -349,7 +345,7 @@ export default function NewBillPage() {
                                       <input
                                         className="form-input"
                                         style={{ paddingLeft: '28px', fontSize: '13px' }}
-                                        placeholder="Cari produk..."
+                                        placeholder="Cari produk (Nama / SKU)..."
                                         value={productQuery}
                                         onChange={e => setProductQuery(e.target.value)}
                                         autoFocus
@@ -361,19 +357,15 @@ export default function NewBillPage() {
                                       key={p.id}
                                       onClick={() => addProductToItem(index, p)}
                                       style={{
-                                        padding: '10px 12px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        fontSize: '13px',
-                                        transition: 'background 0.1s',
+                                        padding: '10px 12px', cursor: 'pointer', display: 'flex',
+                                        justifyContent: 'space-between', alignItems: 'center',
+                                        fontSize: '13px', transition: 'background 0.1s',
                                       }}
                                       onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
                                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                                     >
                                       <div>
-                                        <div style={{ fontWeight: '600' }}>{p.name}</div>
+                                        <div style={{ fontWeight: '600' }}>{p.sku_code && <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>[{p.sku_code}]</span>}{p.name}</div>
                                         <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{p.category} • /{p.unit}</div>
                                       </div>
                                       <div style={{ fontWeight: '700', color: 'var(--accent)', fontSize: '12px' }}>
@@ -392,7 +384,6 @@ export default function NewBillPage() {
                                 setProductQuery('');
                               }}
                               style={{ whiteSpace: 'nowrap' }}
-                              aria-label="Pilih dari produk"
                             >
                               Pilih Produk <ChevronDown size={12} />
                             </button>
@@ -400,30 +391,23 @@ export default function NewBillPage() {
 
                           <input
                             className="form-input"
-                            placeholder="Deskripsi (opsional)"
+                            placeholder="Deskripsi spesifikasi detail (opsional)"
                             style={{ fontSize: '13px' }}
                             {...register(`items.${index}.description`)}
                           />
 
-                          {/* Qty, Unit, Price, Total */}
-                          <div style={{ display: 'grid', gridTemplateColumns: '90px 110px 160px 1fr 36px', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: showItemDiscount ? '90px 110px 160px 80px 1fr 36px' : '90px 110px 160px 1fr 36px', gap: '8px', alignItems: 'center' }}>
                             <div className="form-group" style={{ gap: '4px' }}>
                               <label style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Qty</label>
                               <input
-                                type="number"
-                                step="0.01"
-                                className="form-input"
-                                placeholder="1"
-                                style={{ fontSize: '13px' }}
+                                type="number" step="0.01" className="form-input" placeholder="1" style={{ fontSize: '13px' }}
                                 {...register(`items.${index}.quantity`, { valueAsNumber: true })}
                               />
                             </div>
                             <div className="form-group" style={{ gap: '4px' }}>
                               <label style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Satuan</label>
                               <input
-                                className="form-input"
-                                placeholder="pcs"
-                                style={{ fontSize: '13px' }}
+                                className="form-input" placeholder="pcs" style={{ fontSize: '13px' }}
                                 {...register(`items.${index}.unit`)}
                               />
                             </div>
@@ -443,6 +427,17 @@ export default function NewBillPage() {
                                 )}
                               />
                             </div>
+                            
+                            {showItemDiscount && (
+                              <div className="form-group" style={{ gap: '4px' }}>
+                                <label style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Disc %</label>
+                                <input
+                                  type="number" className="form-input" placeholder="0" style={{ fontSize: '13px' }} max={100}
+                                  {...register(`items.${index}.discount_percent`, { valueAsNumber: true })}
+                                />
+                              </div>
+                            )}
+
                             <div style={{ textAlign: 'right' }}>
                               <div style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Total</div>
                               <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--accent)' }}>
@@ -450,11 +445,8 @@ export default function NewBillPage() {
                               </div>
                             </div>
                             <button
-                              type="button"
-                              className="btn btn-ghost btn-icon btn-sm"
-                              onClick={() => remove(index)}
+                              type="button" className="btn btn-ghost btn-icon btn-sm" onClick={() => remove(index)}
                               style={{ color: 'var(--danger)', alignSelf: 'flex-end' }}
-                              aria-label="Hapus item"
                             >
                               <Trash2 size={14} />
                             </button>
@@ -475,22 +467,20 @@ export default function NewBillPage() {
 
         {/* Totals & Notes */}
         <div className="grid grid-layout-sidebar" style={{ gridTemplateColumns: '1fr auto', gap: '20px', alignItems: 'start' }}>
-          {/* Notes */}
           <div className="card">
             <div className="card-header">
-              <span className="card-title">Catatan</span>
+              <span className="card-title">Syarat & Ketentuan / Catatan</span>
             </div>
             <div className="card-body">
               <textarea
                 className="form-textarea"
-                placeholder="Catatan tambahan untuk klien (opsional)"
+                placeholder="Tuliskan syarat pembayaran, garansi, dsb (opsional)"
                 rows={4}
                 {...register('notes')}
               />
             </div>
           </div>
 
-          {/* Summary */}
           <div className="card" style={{ minWidth: '360px' }}>
             <div className="card-header">
               <span className="card-title">Ringkasan</span>
@@ -502,7 +492,7 @@ export default function NewBillPage() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Diskon (Rp)</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Diskon Tambahan (Rp)</span>
                 <Controller
                   control={control}
                   name="discount"
@@ -542,22 +532,13 @@ export default function NewBillPage() {
                 </span>
               </div>
 
-              <button type="submit" className="btn btn-primary btn-lg w-full" disabled={saving} id="save-bill-btn">
-                {saving ? (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                    Menyimpan...
-                  </span>
-                ) : (
-                  <><Save size={16} /> Simpan sebagai Draft</>
-                )}
+              <button type="submit" className="btn btn-primary btn-lg w-full" disabled={saving}>
+                {saving ? 'Menyimpan...' : 'Simpan Draft'}
               </button>
             </div>
           </div>
         </div>
       </form>
-
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Bill } from '@/types';
 import { generateBillHTML, formatCurrency, formatDate } from '@/lib/pdf/generateBill';
+import { generateThermalBillHTML } from '@/lib/pdf/generateThermalBill';
 import { motion } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -55,6 +56,15 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
       printWindow.onload = () => {
         printWindow.print();
       };
+    }
+  };
+
+  const handlePrintThermal = () => {
+    const html = generateThermalBillHTML(bill);
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
     }
   };
 
@@ -143,7 +153,10 @@ export default function BillDetailClient({ bill: initialBill }: Props) {
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button className="btn btn-secondary" onClick={handlePrint} id="print-bill-btn">
-            <Printer size={15} /> Cetak
+            <Printer size={15} /> Cetak A4
+          </button>
+          <button className="btn btn-secondary" onClick={handlePrintThermal} id="print-thermal-btn">
+            <Printer size={15} /> Cetak Struk (80mm)
           </button>
           <button className="btn btn-secondary" onClick={handleDownloadPDF} id="download-pdf-btn">
             <Download size={15} /> Download PDF

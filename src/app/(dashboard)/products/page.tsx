@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Product, Category } from '@/types';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productSchema, ProductFormData } from '@/lib/validations';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '@/lib/pdf/generateBill';
 import { Plus, Search, Edit2, Trash2, X, Package, Tag, ToggleLeft, ToggleRight, List } from 'lucide-react';
+import { CurrencyInput } from '@/components/CurrencyInput';
 
 const UNITS = ['pcs', 'meter', 'unit', 'set', 'titik', 'roll', 'box'];
 
@@ -43,6 +44,7 @@ export default function ProductsPage() {
     reset,
     watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as any,
@@ -81,6 +83,7 @@ export default function ProductsPage() {
   const openEditModal = (product: Product) => {
     setEditingProduct(product);
     reset({
+      sku_code: product.sku_code || '',
       name: product.name,
       category: product.category,
       description: product.description || '',
@@ -193,6 +196,7 @@ export default function ProductsPage() {
           <table className="data-table">
             <thead>
               <tr>
+                <th>SKU</th>
                 <th>Nama Produk</th>
                 <th>Kategori</th>
                 <th>Satuan</th>
@@ -204,7 +208,7 @@ export default function ProductsPage() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="empty-state">
                       <Package className="empty-icon" />
                       <h3>Tidak ada produk</h3>
@@ -217,6 +221,11 @@ export default function ProductsPage() {
                   const catStyle = categoryColors[product.category] || categoryColors['Lainnya'];
                   return (
                     <tr key={product.id}>
+                      <td>
+                        <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
+                          {product.sku_code || '-'}
+                        </span>
+                      </td>
                       <td>
                         <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '13.5px' }}>{product.name}</div>
                         {product.description && (
@@ -312,14 +321,24 @@ export default function ProductsPage() {
 
               <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="form-group">
-                    <label className="form-label required">Nama Produk</label>
-                    <input
-                      className={`form-input ${errors.name ? 'error' : ''}`}
-                      placeholder="e.g. CCTV Hikvision 2MP"
-                      {...register('name')}
-                    />
-                    {errors.name && <span className="form-error">{errors.name.message}</span>}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="form-group col-span-1">
+                      <label className="form-label">Kode SKU</label>
+                      <input
+                        className="form-input"
+                        placeholder="Opsional"
+                        {...register('sku_code')}
+                      />
+                    </div>
+                    <div className="form-group col-span-2">
+                      <label className="form-label required">Nama Produk</label>
+                      <input
+                        className={`form-input ${errors.name ? 'error' : ''}`}
+                        placeholder="e.g. CCTV Hikvision 2MP"
+                        {...register('name')}
+                      />
+                      {errors.name && <span className="form-error">{errors.name.message}</span>}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -351,11 +370,17 @@ export default function ProductsPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="form-group">
                       <label className="form-label required">Harga (Rp)</label>
-                      <input
-                        type="number"
-                        className={`form-input ${errors.price ? 'error' : ''}`}
-                        placeholder="0"
-                        {...register('price', { valueAsNumber: true })}
+                      <Controller
+                        control={control}
+                        name="price"
+                        render={({ field }) => (
+                          <CurrencyInput
+                            className={`form-input ${errors.price ? 'error' : ''}`}
+                            placeholder="0"
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        )}
                       />
                       {errors.price && <span className="form-error">{errors.price.message}</span>}
                     </div>
